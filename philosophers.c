@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/16 04:45:03 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/16 05:35:26 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ void	free_datas(t_data *data)
 	free(data->mutex);
 	free(data->latest_eat_tv);
 	free(data->is_end);
+	free(data);
 }
 
 // mutex destroyとfree datas
@@ -43,7 +44,6 @@ int	free_all_before_end(t_data *datas, int is_fail)
 		i++;
 	}
 	free_datas(datas);
-	free(datas);
 	if (is_fail)
 		return (1);
 	return (0);
@@ -70,7 +70,6 @@ int	msg_eating(t_data *data)
 	*data->latest_eat_tv = tv;
 	printf("%ld %d is eating\n", tv_in_ms(tv), data->my_index);
 	waiting_time = 1000 * data->args->time_to_eat;
-	// printf("wating_time : %lld (microsec)\n", waiting_time); //todo delete
 	i = 0;
 	while (*data->is_end == 0 && i < waiting_time)
 	{
@@ -111,9 +110,6 @@ int	msg_thinking(t_data *data)
 	return (0);
 }
 
-// todo fix
-// TODO datas受け取ってるので、失敗したときは内部でall_freeしてよさそう
-// →pthread_joinでstatusうけとったとき1だったらそこでall_freeしてる。
 void	*check_end(void *v_datas)
 {
 	int				i;
@@ -158,15 +154,9 @@ void	*start_routine(void *v_data)
 	pthread_mutex_t	*fork_l;
 	t_data			*data;
 
-	// pthread_mutex_t	latest_eat_time;
-	// struct timeval	tv;
 	data = (t_data *)v_data;
 	fork_r = &data->mutex[data->my_index - 1];
 	fork_l = &data->mutex[data->my_index % data->args->nb_of_philos];
-	// printf("%d fork_r : %d\n", data->my_index, data->my_index - 1);
-	// printf("%d fork_l : %d\n", data->my_index, data->my_index % data->args->nb_of_philos);
-	printf("before while %d : \n", data->my_index); //todo delete
-	printf("is_end : %d\n", *data->is_end); //todo delete
 	while (*data->is_end == 0)
 	{	
 		printf("start_routine %d : \n", data->my_index); //todo delete
@@ -176,32 +166,21 @@ void	*start_routine(void *v_data)
 		if (*data->is_end == 1)
 			break ;
 		if (msg_take_fork(data->my_index))
-		{
-			printf("---- ここ?1 ----\n");
 			return ((void *)1);
-		}
 		pthread_mutex_lock(fork_l);
 		if (*data->is_end == 1)
 			break ;
 		if (msg_take_fork(data->my_index))
-		{
-			printf("---- ここ?2 ----\n");
 			return ((void *)1);
-		}
 		if (msg_eating(data))
-		{
-			printf("---- ここ?3 ----\n");
 			return ((void *)1);
-		}
+		// todo このあたりで切り分け。
 		if (*data->is_end == 1)
 			break ;
 		pthread_mutex_unlock(fork_r);
 		pthread_mutex_unlock(fork_l);
 		if (msg_sleeping(data))
-		{
-			printf("---- ここ?4 ----\n");
 			return ((void *)1);
-		}
 		if (*data->is_end == 1)
 			break ;
 		msg_thinking(data);
@@ -249,24 +228,6 @@ int	default_allocation(t_data *data)
 	return (0);
 }
 
-int	init_datas(t_data *data)
-{
-	int	i;
-
-	if (default_allocation(data) != 0)
-		return (1);
-	printf("default_allocation OK\n");
-	*data->is_end = 0;
-	i = 0;
-	while (i < data->args->nb_of_philos)
-	{
-		pthread_mutex_init(&data->mutex[i], NULL);
-		i++;
-	}
-	// printf("mutex init OK\n");
-	return (0);
-}
-
 // datas[i].mutex に &(data->mutex)[i]していないのは、nb_of_philosの左のフォークを指定するのに0番目のmutexを取得するのが面倒だから
 void	set_each_philo(t_data *datas, t_args *args)
 {
@@ -281,9 +242,30 @@ void	set_each_philo(t_data *datas, t_args *args)
 		datas[i].mutex = datas->mutex;
 		datas[i].latest_eat_tv = &datas->latest_eat_tv[i];
 		datas[i].is_end = datas->is_end;
-		datas[i].nb_eat = 0; //&(datas->nb_eat)[i];
+		datas[i].nb_eat = 0;
 		datas[i].my_index = i;
 	}
+}
+
+int	init_datas(t_data **datas, t_args *args)
+{
+	int	i;
+
+	*datas = malloc(sizeof(t_data) * (args->nb_of_philos + 1));
+	if (*datas == NULL)
+		return (1);
+	(*datas)->args = args;
+	if (default_allocation(*datas) != 0)
+		return (1);
+	*(*datas)->is_end = 0;
+	set_each_philo(*datas, args);
+	i = 0;
+	while (i < args->nb_of_philos)
+	{
+		pthread_mutex_init(&(*datas)->mutex[i], NULL);
+		i++;
+	}
+	return (0);
 }
 
 void set_default_latest_eat_tv(t_data *datas, struct timeval *tv)
@@ -294,7 +276,6 @@ void set_default_latest_eat_tv(t_data *datas, struct timeval *tv)
 	while (++i <= datas->args->nb_of_philos)
 	{
 		datas->latest_eat_tv[i] = *tv;
-		printf("latest_eat_tv[%d] = %ld\n", i, tv_in_ms(datas->latest_eat_tv[i]));// todo delete
 	}
 }
 
@@ -320,49 +301,29 @@ int	main(int argc, char *argv[])
 	if (argc < 5 || argc > 6)
 		return (1);
 	set_args(argc, argv, &args);
-	printf("nb_of_philos : %d\n", args.nb_of_philos);
-	printf("time_to_die : %d\n", args.time_to_die);
-	printf("time_to_eat : %d\n", args.time_to_eat);
-	printf("time_to_sleep : %d\n", args.time_to_sleep);
-	printf("nb_of_times_each_philo_must_eat : %d\n",
-			args.nb_of_times_each_philo_must_eat);
-	datas = malloc(sizeof(t_data) * (args.nb_of_philos + 1));
-	datas->args = &args;
-	if (datas == NULL)
+	if (init_datas(&datas, &args) != 0)
 		return (1);
-	if (init_datas(datas) != 0)
-		return (1);
-	set_each_philo(datas, &args);
 	if (gettimeofday(&tv_start, NULL) != 0)
 		return (free_all_before_end(datas, FAIL));
-	printf("start = %ld\n", tv_in_ms(tv_start));
+	printf("start = %ld\n", tv_in_ms(tv_start)); // todo delete
 	set_default_latest_eat_tv(datas, &tv_start); // 仮
 
-
+	// todo group 2 切り出す
 	if (pthread_create(datas->th, NULL, check_end, datas) != 0)
 		return (free_all_before_end(datas, FAIL));
-	i = 0;
-	while (++i <= args.nb_of_philos)
-	{
-		printf("---- datas[%d].is_end : %d\n",i, *datas[i].is_end);
-	}
-	
 	i = 0;
 	while (++i <= args.nb_of_philos)
 	{
 		datas[i].my_index = i;
 		if (pthread_create(datas[i].th, NULL, start_routine, &datas[i]) != 0)
 		{
-			// printf("pthread_create error [%d]: \n", i);
-			perror("pthread_create error: ");
+			perror("pthread_create error: "); // todo delete
 			return (free_all_before_end(datas, FAIL));
 		}
-		else
-		{
-			// printf("pthread_create OK [%d]: \n", i);
-		}
 	}
-	i = 0;
+
+	// todo group 3 切り出す
+	i = -1;
 	while (++i <= args.nb_of_philos)
 	{
 		if (pthread_join(*(datas[i].th), datas[i].rtn_status) != 0)
@@ -378,12 +339,6 @@ int	main(int argc, char *argv[])
 			if (&datas->rtn_status[i] == (void *)1)
 				return (free_all_before_end(datas, FAIL));
 		}
-	}
-	if (pthread_join(*datas->th, datas->rtn_status) != 0)
-	{
-		// printf("pthread_join error [0]: \n");
-		perror("pthread_join error: ");
-		return (free_all_before_end(datas, FAIL));
 	}
 	printf("  end routine\n");
 	if (gettimeofday(&tv_end, NULL) != 0)
