@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/13 23:53:03 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/16 04:45:03 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,13 @@ int	free_all_before_end(t_data *datas, int is_fail)
 	int	i;
 
 	i = 0;
-	while (i <= datas->args->nb_of_philos)
+	while (i < datas->args->nb_of_philos)
 	{
 		pthread_mutex_destroy(&datas->mutex[i]);
 		i++;
 	}
 	free_datas(datas);
+	free(datas);
 	if (is_fail)
 		return (1);
 	return (0);
@@ -66,18 +67,18 @@ int	msg_eating(t_data *data)
 
 	if (gettimeofday(&tv, NULL) != 0)
 		return (1);
-	data->latest_eat_tv[data->my_index] = tv;
+	*data->latest_eat_tv = tv;
 	printf("%ld %d is eating\n", tv_in_ms(tv), data->my_index);
 	waiting_time = 1000 * data->args->time_to_eat;
-	printf("wating_time : %lld\n", waiting_time); //todo delete
+	// printf("wating_time : %lld (microsec)\n", waiting_time); //todo delete
 	i = 0;
-	while (*(data->is_end) == 0 && i < waiting_time)
+	while (*data->is_end == 0 && i < waiting_time)
 	{
 		usleep(10);
 		i += 10;
 	}
-	printf("after eating\n"); //todo delete
 	data->nb_eat++;
+	printf("nb_eat %d : %d \n", data->my_index, data->nb_eat); // todo delete
 	return (0);
 }
 
@@ -92,7 +93,7 @@ int	msg_sleeping(t_data *data)
 	printf("%ld %d is sleeping\n", tv_in_ms(tv), data->my_index);
 	waiting_time = 1000 * data->args->time_to_sleep;
 	i = 0;
-	while (data->is_end == 0 && i < waiting_time)
+	while (*data->is_end == 0 && i < waiting_time)
 	{
 		usleep(10);
 		i += 10;
@@ -112,105 +113,95 @@ int	msg_thinking(t_data *data)
 
 // todo fix
 // TODO datas受け取ってるので、失敗したときは内部でall_freeしてよさそう
-void	*check_death(void *v_datas)
+// →pthread_joinでstatusうけとったとき1だったらそこでall_freeしてる。
+void	*check_end(void *v_datas)
 {
 	int				i;
 	struct timeval	tv;
-	t_data *datas;
-	int *rtn;
+	t_data			*datas;
 
+	printf("監視用スレッド起動\n");
 	datas = (t_data *)v_datas;
-	rtn = malloc(sizeof(int));
-
-	while (datas->is_end == 0)
+	while (*datas->is_end == 0)
 	{
 		i = 0;
-		while (i < datas->args->nb_of_philos)
+		while (++i <= datas->args->nb_of_philos)
 		{
 			if (gettimeofday(&tv, NULL) != 0)
-			{
-				*rtn = free_all_before_end(datas, FAIL);
-				// return ((void *)rtn);
 				return ((void *)1);
-			}
-			if (tv_in_ms(datas->latest_eat_tv[i])
-				+ datas->args->time_to_die > tv_in_ms(tv))
+			if (tv_in_ms(datas->latest_eat_tv[i]) + datas->args->time_to_die <= tv_in_ms(tv))
 			{
-				pthread_mutex_lock(datas->mutex);
-				*(datas->is_end) = 1;
-				pthread_mutex_unlock(datas->mutex);
+				*datas->is_end = 1;
 				printf("%ld %d died\n", tv_in_ms(tv), i);
+				return (NULL);
 			}
-			i++;
 		}
-	}
-	// *rtn = 0;
-	return ((void *)0);
-}
-
-void	*check_eat_enough(void *v_datas)
-{
-	int	i;
-	t_data *datas;
-
-	datas = (t_data *)v_datas;
-	while (datas->is_end == 0)
-	{
 		i = 0;
 		while (++i <= datas->args->nb_of_philos)
 		{
 			if (datas[i].nb_eat < datas->args->nb_of_times_each_philo_must_eat)
 				break ;
 		}
-		if (i == datas->args->nb_of_philos)
+		if (i > datas->args->nb_of_philos)
 		{
-			pthread_mutex_lock(datas->mutex);
+			printf("all philos ate enough\n");
 			*datas->is_end = 1;
-			pthread_mutex_unlock(datas->mutex);
 		}
 	}
-	return (NULL); // ここの情報は特にいらない
-}
-
-void *rtn_int_ptr_1(void)
-{
-	int *rtn;
-
-	rtn = malloc(sizeof(int));
-	*rtn = 1;
-	return ((void *)rtn);
+	printf("監視用スレッド終了\n");
+	return (NULL);
 }
 
 void	*start_routine(void *v_data)
 {
 	pthread_mutex_t	*fork_r;
 	pthread_mutex_t	*fork_l;
+	t_data			*data;
+
 	// pthread_mutex_t	latest_eat_time;
 	// struct timeval	tv;
-	t_data *data;
-
 	data = (t_data *)v_data;
-	fork_r = &(data->mutex)[data->my_index];
-	fork_l = &(data->mutex)[(data->my_index + 1) % data->args->nb_of_philos];
-	while (data->is_end == 0)
-	{
+	fork_r = &data->mutex[data->my_index - 1];
+	fork_l = &data->mutex[data->my_index % data->args->nb_of_philos];
+	// printf("%d fork_r : %d\n", data->my_index, data->my_index - 1);
+	// printf("%d fork_l : %d\n", data->my_index, data->my_index % data->args->nb_of_philos);
+	printf("before while %d : \n", data->my_index); //todo delete
+	printf("is_end : %d\n", *data->is_end); //todo delete
+	while (*data->is_end == 0)
+	{	
+		printf("start_routine %d : \n", data->my_index); //todo delete
 		if (data->my_index % 2 == 1)
 			usleep(200);
 		pthread_mutex_lock(fork_r);
-		if(msg_take_fork(data->my_index))
-			// return (rtn_int_ptr_1());
-			return ((void *)1);
-		pthread_mutex_lock(fork_l);
+		if (*data->is_end == 1)
+			break ;
 		if (msg_take_fork(data->my_index))
-			return (rtn_int_ptr_1());
+		{
+			printf("---- ここ?1 ----\n");
+			return ((void *)1);
+		}
+		pthread_mutex_lock(fork_l);
+		if (*data->is_end == 1)
+			break ;
+		if (msg_take_fork(data->my_index))
+		{
+			printf("---- ここ?2 ----\n");
+			return ((void *)1);
+		}
 		if (msg_eating(data))
-			return (rtn_int_ptr_1());
+		{
+			printf("---- ここ?3 ----\n");
+			return ((void *)1);
+		}
 		if (*data->is_end == 1)
 			break ;
 		pthread_mutex_unlock(fork_r);
 		pthread_mutex_unlock(fork_l);
 		if (msg_sleeping(data))
-			return (rtn_int_ptr_1());
+		{
+			printf("---- ここ?4 ----\n");
+			return ((void *)1);
+		}
 		if (*data->is_end == 1)
 			break ;
 		msg_thinking(data);
@@ -234,29 +225,22 @@ void	set_args(int argc, char *argv[], t_args *args)
 		args->nb_of_times_each_philo_must_eat = INT_MAX;
 }
 
-
-
-// th[0] は死亡監視用に使って、
-// th[nb_of_philos + 1]は　nb_of_times_each_philo_must_eat超過監視用
+// th[0] は終了条件監視用
 // th[i] は i 番目の哲学者のスレッド
-// mutex[0] は is_end のlockに使う。
-// mutex[i] は i 番目の哲学者の右のフォーク
-// mutex[i + 1] は i 番目の哲学者の左のフォーク
+// mutex[i-1] は i 番目の哲学者の右のフォーク
+// mutex[i] は i 番目の哲学者の左のフォーク
 // latest_eat_tv[i] は i 番目の哲学者が最後に食事をしはじめた時間
 // is_end は 0 なら生存中、1 なら死亡or全員規定の数の食事後
 // nb_eat[i] は i 番目の哲学者が食事した回数
 
 int	default_allocation(t_data *data)
 {
-	printf("default_allocation\n");
-	data->th = malloc(sizeof(pthread_t) * data->args->nb_of_philos + 2);
-	data->rtn_status = malloc(sizeof(void *) * data->args->nb_of_philos + 2);
-	data->mutex = malloc(sizeof(pthread_mutex_t) * (data->args->nb_of_philos
-				+ 1));
-	data->latest_eat_tv = malloc(sizeof(struct timeval)* data->args->nb_of_philos + 1);
+	data->th = malloc(sizeof(pthread_t) * (data->args->nb_of_philos + 1));
+	data->rtn_status = malloc(sizeof(void *) * (data->args->nb_of_philos + 1));
+	data->mutex = malloc(sizeof(pthread_mutex_t) * (data->args->nb_of_philos));
+	data->latest_eat_tv = malloc(sizeof(struct timeval)
+			* (data->args->nb_of_philos + 1));
 	data->is_end = malloc(sizeof(int));
-	// data->nb_eat = malloc(sizeof(int) * data->args->nb_of_philos+1);
-	printf("malloc OK\n");
 	if (data->th == NULL || data->mutex == NULL || data->latest_eat_tv == NULL || data->is_end == NULL || data->rtn_status == NULL)
 	{
 		free_datas(data);
@@ -272,17 +256,16 @@ int	init_datas(t_data *data)
 	if (default_allocation(data) != 0)
 		return (1);
 	printf("default_allocation OK\n");
-	*(data->is_end) = 0;
+	*data->is_end = 0;
 	i = 0;
-	while (i <= data->args->nb_of_philos)
+	while (i < data->args->nb_of_philos)
 	{
 		pthread_mutex_init(&data->mutex[i], NULL);
 		i++;
 	}
-	printf("mutex init OK\n");
+	// printf("mutex init OK\n");
 	return (0);
 }
-
 
 // datas[i].mutex に &(data->mutex)[i]していないのは、nb_of_philosの左のフォークを指定するのに0番目のmutexを取得するのが面倒だから
 void	set_each_philo(t_data *datas, t_args *args)
@@ -293,20 +276,31 @@ void	set_each_philo(t_data *datas, t_args *args)
 	while (++i <= args->nb_of_philos)
 	{
 		datas[i].args = args;
-		datas[i].th = &(datas->th)[i];
-		datas[i].rtn_status = &(datas->rtn_status)[i];
-		// datas[i].mutex = &(datas->mutex)[i];
-		datas[i].mutex = datas->mutex; // 
-		datas[i].latest_eat_tv = &(datas->latest_eat_tv)[i];
+		datas[i].th = &datas->th[i];
+		datas[i].rtn_status = &datas->rtn_status[i];
+		datas[i].mutex = datas->mutex;
+		datas[i].latest_eat_tv = &datas->latest_eat_tv[i];
 		datas[i].is_end = datas->is_end;
 		datas[i].nb_eat = 0; //&(datas->nb_eat)[i];
 		datas[i].my_index = i;
 	}
 }
 
+void set_default_latest_eat_tv(t_data *datas, struct timeval *tv)
+{
+	int	i;
+
+	i = 0;
+	while (++i <= datas->args->nb_of_philos)
+	{
+		datas->latest_eat_tv[i] = *tv;
+		printf("latest_eat_tv[%d] = %ld\n", i, tv_in_ms(datas->latest_eat_tv[i]));// todo delete
+	}
+}
+
 __attribute__((destructor)) static void destructor()
 {
-	system("leaks -q fdf");
+	system("leaks -q philo");
 }
 
 // argv
@@ -317,12 +311,12 @@ __attribute__((destructor)) static void destructor()
 // 	(option) number_of_times_each_philosopher_must_eat
 int	main(int argc, char *argv[])
 {
+	int		i;
+	t_data	*datas;
+	t_args	args;
+
 	struct timeval tv_start; // todo あとで消す
 	struct timeval tv_end;   // todo あとで消す
-	int i;
-	t_data *datas;
-	t_args args;
-
 	if (argc < 5 || argc > 6)
 		return (1);
 	set_args(argc, argv, &args);
@@ -330,71 +324,72 @@ int	main(int argc, char *argv[])
 	printf("time_to_die : %d\n", args.time_to_die);
 	printf("time_to_eat : %d\n", args.time_to_eat);
 	printf("time_to_sleep : %d\n", args.time_to_sleep);
-	printf("nb_of_times_each_philo_must_eat : %d\n", args.nb_of_times_each_philo_must_eat);
-		
-	datas = malloc(sizeof(t_data) * args.nb_of_philos + 1);
+	printf("nb_of_times_each_philo_must_eat : %d\n",
+			args.nb_of_times_each_philo_must_eat);
+	datas = malloc(sizeof(t_data) * (args.nb_of_philos + 1));
 	datas->args = &args;
 	if (datas == NULL)
 		return (1);
 	if (init_datas(datas) != 0)
 		return (1);
-	printf("1\n");
 	set_each_philo(datas, &args);
 	if (gettimeofday(&tv_start, NULL) != 0)
 		return (free_all_before_end(datas, FAIL));
-
 	printf("start = %ld\n", tv_in_ms(tv_start));
+	set_default_latest_eat_tv(datas, &tv_start); // 仮
 
-	if (pthread_create(datas->th, NULL, check_death, datas) != 0)
-		return (free_all_before_end(datas, FAIL));
-	if (pthread_create(&datas->th[args.nb_of_philos + 1], NULL,
-			check_eat_enough, datas) != 0)
+
+	if (pthread_create(datas->th, NULL, check_end, datas) != 0)
 		return (free_all_before_end(datas, FAIL));
 	i = 0;
 	while (++i <= args.nb_of_philos)
 	{
-		datas[i].my_index = i;
-		if (pthread_create(&datas->th[i], NULL, start_routine, &datas[i]) != 0)
-			return (free_all_before_end(datas, FAIL));
-		printf("start routine %d\n", i);
+		printf("---- datas[%d].is_end : %d\n",i, *datas[i].is_end);
 	}
-	i = -1;
-	while (++i <= args.nb_of_philos + 1)
+	
+	i = 0;
+	while (++i <= args.nb_of_philos)
 	{
-		if (pthread_join(datas->th[i], &(datas->rtn_status)[i]) != 0)
+		datas[i].my_index = i;
+		if (pthread_create(datas[i].th, NULL, start_routine, &datas[i]) != 0)
+		{
+			// printf("pthread_create error [%d]: \n", i);
+			perror("pthread_create error: ");
 			return (free_all_before_end(datas, FAIL));
-		printf("th[%d] return : %d\n", i, (((int *)(datas->rtn_status))[i]));
+		}
+		else
+		{
+			// printf("pthread_create OK [%d]: \n", i);
+		}
+	}
+	i = 0;
+	while (++i <= args.nb_of_philos)
+	{
+		if (pthread_join(*(datas[i].th), datas[i].rtn_status) != 0)
+		{
+			// printf("pthread_join error [%d]: \n", i);
+			perror("pthread_join error: ");
+			return (free_all_before_end(datas, FAIL));
+		}
+		printf("th[%d] return : %lu\n", i, (uintptr_t)((void **)datas->rtn_status)[i]);
 		if (&(datas->rtn_status)[i] != NULL)
 		{
-			free(&(datas->rtn_status)[i]);
-			if (*(int *)&(datas->rtn_status)[i] == 1)
+			// free(&(datas->rtn_status)[i]);
+			if (&datas->rtn_status[i] == (void *)1)
 				return (free_all_before_end(datas, FAIL));
 		}
 	}
+	if (pthread_join(*datas->th, datas->rtn_status) != 0)
+	{
+		// printf("pthread_join error [0]: \n");
+		perror("pthread_join error: ");
+		return (free_all_before_end(datas, FAIL));
+	}
 	printf("  end routine\n");
-	// i = -1;
-	// while (++i <= args.nb_of_philos + 1)
-	// {
-	// 	if ((datas->rtn_status)[i] != 0)
-	// 	{
-	// 		printf("rtn_status = %d\n", *(int *)datas->rtn_status[i]);
-	// 		return (free_all_before_end(datas, FAIL));
-	// 	}
-	// }
-	
-
-	// i = 0;
-	// while (i < args.nb_of_philos)
-	// {
-	// 	pthread_mutex_destroy(&datas->mutex[i]);
-	// 	i++;
-	// }
-
 	if (gettimeofday(&tv_end, NULL) != 0)
 		return (1);
 	// printf("time = %ld.%d\n", tv_end.tv_sec, tv_end.tv_usec);
 	printf("time   end = %ld\n", tv_in_ms(tv_end));
 	printf("time  diff = %ld\n", tv_in_ms(tv_end) - tv_in_ms(tv_start));
-
 	return (free_all_before_end(datas, NORMAL));
 }
