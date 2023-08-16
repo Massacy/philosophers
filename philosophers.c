@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/16 20:58:34 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/16 23:02:12 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,6 +129,7 @@ void	*check_end(void *v_datas)
 			{
 				*datas->is_end = 1;
 				printf("%ld %d died\n", tv_in_ms(tv), i);
+				printf("監視用スレッド終了\n");
 				return (NULL);
 			}
 		}
@@ -140,8 +141,8 @@ void	*check_end(void *v_datas)
 		}
 		if (i > datas->args->nb_of_philos)
 		{
-			printf("all philos ate enough\n");
 			*datas->is_end = 1;
+			printf("all philos ate enough\n");
 		}
 	}
 	printf("監視用スレッド終了\n");
@@ -163,19 +164,30 @@ void	*start_routine(void *v_data)
 			usleep(200);
 		pthread_mutex_lock(fork_r);
 		if (*data->is_end == 1)
+		{
+			pthread_mutex_unlock(fork_r);
 			break ;
+		}
 		if (msg_take_fork(data->my_index))
 			return ((void *)1);
 		pthread_mutex_lock(fork_l);
 		if (*data->is_end == 1)
+		{
+			pthread_mutex_unlock(fork_r);
+			pthread_mutex_unlock(fork_l);
 			break ;
+		}
 		if (msg_take_fork(data->my_index))
 			return ((void *)1);
 		if (msg_eating(data))
 			return ((void *)1);
 		// todo このあたりで切り分け。
 		if (*data->is_end == 1)
+		{
+			pthread_mutex_unlock(fork_r);
+			pthread_mutex_unlock(fork_l);
 			break ;
+		}
 		pthread_mutex_unlock(fork_r);
 		pthread_mutex_unlock(fork_l);
 		if (msg_sleeping(data))
@@ -249,6 +261,7 @@ void	set_each_philo(t_data *datas, t_args *args)
 int	init_datas(t_data **datas, t_args *args)
 {
 	int	i;
+	int j;
 
 	*datas = malloc(sizeof(t_data) * (args->nb_of_philos + 1));
 	if (*datas == NULL)
@@ -261,7 +274,17 @@ int	init_datas(t_data **datas, t_args *args)
 	i = 0;
 	while (i < args->nb_of_philos)
 	{
-		pthread_mutex_init(&(*datas)->mutex[i], NULL);
+		if (pthread_mutex_init(&(*datas)->mutex[i], NULL) != 0)
+		{
+			j = 0;
+			while (j < i)
+			{
+				pthread_mutex_destroy(&(*datas)->mutex[j]);
+				j++;
+			}
+			free_datas(*datas);
+			return (1);
+		}
 		i++;
 	}
 	return (0);
@@ -278,10 +301,10 @@ void set_default_latest_eat_tv(t_data *datas, struct timeval *tv)
 	}
 }
 
-__attribute__((destructor)) static void destructor()
-{
-	system("leaks -q philo");
-}
+// __attribute__((destructor)) static void destructor()
+// {
+// 	system("leaks -q philo");
+// }
 
 // argv
 // 	number_of_philosophers
@@ -327,7 +350,7 @@ int	main(int argc, char *argv[])
 	{
 		if (pthread_join(*(datas[i].th), datas[i].rtn_status) != 0)
 			return (free_all_before_end(datas, FAIL));
-		// printf("th[%d] return : %lu\n", i, (uintptr_t)((void **)datas->rtn_status)[i]);
+		printf("th[%d] return : %lu\n", i, (uintptr_t)((void **)datas->rtn_status)[i]);
 		if (&(datas->rtn_status)[i] != NULL)
 		{
 			if (&datas->rtn_status[i] == (void *)1)
