@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/16 18:21:53 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/17 02:59:32 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 
 # define NORMAL 0
 # define FAIL 1
+# define CONTINUE -1
 
 typedef struct s_args
 {
@@ -50,6 +51,8 @@ typedef struct s_data
 }					t_data;
 
 int					ft_atoi(char *nptr);
+
+void *check_end(void *v_datas);
 
 #endif
 

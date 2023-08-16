@@ -2,7 +2,7 @@ NAME := philo
 CC := cc
 CFLAGS := -Wall -Wextra -Werror 
 # CFLAGS := -Wall -Wextra -Werror -fsanitize=address -g
-SRCS := philosophers.c ft_atoi.c
+SRCS := philosophers.c ft_atoi.c initializer.c utils.c supervisor.c messages.c
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 
 all: $(NAME)
