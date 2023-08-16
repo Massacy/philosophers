@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/16 05:35:26 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/16 20:58:34 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ int	msg_eating(t_data *data)
 		i += 10;
 	}
 	data->nb_eat++;
-	printf("nb_eat %d : %d \n", data->my_index, data->nb_eat); // todo delete
+	// printf("nb_eat %d : %d \n", data->my_index, data->nb_eat); // todo delete
 	return (0);
 }
 
@@ -159,7 +159,6 @@ void	*start_routine(void *v_data)
 	fork_l = &data->mutex[data->my_index % data->args->nb_of_philos];
 	while (*data->is_end == 0)
 	{	
-		printf("start_routine %d : \n", data->my_index); //todo delete
 		if (data->my_index % 2 == 1)
 			usleep(200);
 		pthread_mutex_lock(fork_r);
@@ -297,7 +296,7 @@ int	main(int argc, char *argv[])
 	t_args	args;
 
 	struct timeval tv_start; // todo あとで消す
-	struct timeval tv_end;   // todo あとで消す
+	// struct timeval tv_end;   // todo あとで消す
 	if (argc < 5 || argc > 6)
 		return (1);
 	set_args(argc, argv, &args);
@@ -327,24 +326,19 @@ int	main(int argc, char *argv[])
 	while (++i <= args.nb_of_philos)
 	{
 		if (pthread_join(*(datas[i].th), datas[i].rtn_status) != 0)
-		{
-			// printf("pthread_join error [%d]: \n", i);
-			perror("pthread_join error: ");
 			return (free_all_before_end(datas, FAIL));
-		}
-		printf("th[%d] return : %lu\n", i, (uintptr_t)((void **)datas->rtn_status)[i]);
+		// printf("th[%d] return : %lu\n", i, (uintptr_t)((void **)datas->rtn_status)[i]);
 		if (&(datas->rtn_status)[i] != NULL)
 		{
-			// free(&(datas->rtn_status)[i]);
 			if (&datas->rtn_status[i] == (void *)1)
 				return (free_all_before_end(datas, FAIL));
 		}
 	}
-	printf("  end routine\n");
-	if (gettimeofday(&tv_end, NULL) != 0)
-		return (1);
+	// printf("  end routine\n");
+	// if (gettimeofday(&tv_end, NULL) != 0)
+		// return (1);
 	// printf("time = %ld.%d\n", tv_end.tv_sec, tv_end.tv_usec);
-	printf("time   end = %ld\n", tv_in_ms(tv_end));
-	printf("time  diff = %ld\n", tv_in_ms(tv_end) - tv_in_ms(tv_start));
+	// printf("time   end = %ld\n", tv_in_ms(tv_end));
+	// printf("time  diff = %ld\n", tv_in_ms(tv_end) - tv_in_ms(tv_start));
 	return (free_all_before_end(datas, NORMAL));
 }

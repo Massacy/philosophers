@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/13 01:32:49 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/16 18:21:53 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,8 +57,8 @@ int					ft_atoi(char *nptr);
 // 各dataごとにに1つのth(philoの行動)にする
 // dataをN個分mallocして、th, mutexもまとめてmallocして、各dataにset, 対応indexもsetする。
 
-// th[1~N] のphilo thread
-// mutex[1~N] のfork用 mutex
+// th[1 ~ N] のphilo thread
+// mutex[0 ~ N-1] のfork用 mutex
 // th[i]とth[i+1]が操作
 // [1~N] のlatest_eat_tv
 // th[i]のみが操作
