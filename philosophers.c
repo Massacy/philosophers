@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/16 23:02:12 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/17 02:26:10 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,40 +62,39 @@ int	msg_take_fork(int i)
 int	msg_eating(t_data *data)
 {
 	struct timeval	tv;
-	long long		waiting_time;
-	int				i;
 
 	if (gettimeofday(&tv, NULL) != 0)
 		return (1);
 	*data->latest_eat_tv = tv;
 	printf("%ld %d is eating\n", tv_in_ms(tv), data->my_index);
-	waiting_time = 1000 * data->args->time_to_eat;
-	i = 0;
-	while (*data->is_end == 0 && i < waiting_time)
+	while (*data->is_end == 0 && tv_in_ms(*data->latest_eat_tv) + data->args->time_to_eat > tv_in_ms(tv))
 	{
-		usleep(10);
-		i += 10;
+		if (gettimeofday(&tv, NULL) != 0)
+			return (1);
 	}
+	// usleep(data->args->time_to_eat*1000);
 	data->nb_eat++;
+
+	if (gettimeofday(&tv, NULL) != 0)
+		return (1);
+	// printf("%ld %d finish eating\n", tv_in_ms(tv), data->my_index); // todo delete
 	// printf("nb_eat %d : %d \n", data->my_index, data->nb_eat); // todo delete
 	return (0);
 }
 
 int	msg_sleeping(t_data *data)
 {
+	struct timeval	tv_start;
 	struct timeval	tv;
-	long long		waiting_time;
-	int				i;
 
-	if (gettimeofday(&tv, NULL) != 0)
+	if (gettimeofday(&tv_start, NULL) != 0)
 		return (1);
-	printf("%ld %d is sleeping\n", tv_in_ms(tv), data->my_index);
-	waiting_time = 1000 * data->args->time_to_sleep;
-	i = 0;
-	while (*data->is_end == 0 && i < waiting_time)
+	printf("%ld %d is sleeping\n", tv_in_ms(tv_start), data->my_index);
+	tv = tv_start;
+	while (*data->is_end == 0 && tv_in_ms(tv_start) + data->args->time_to_sleep > tv_in_ms(tv))
 	{
-		usleep(10);
-		i += 10;
+		if (gettimeofday(&tv, NULL) != 0)
+			return (1);
 	}
 	return (0);
 }
@@ -106,7 +105,8 @@ int	msg_thinking(t_data *data)
 
 	if (gettimeofday(&tv, NULL) != 0)
 		return (1);
-	printf("%ld %d is thinking\n", tv_in_ms(tv), data->my_index);
+	if (*data->is_end == 0)
+		printf("%ld %d is thinking\n", tv_in_ms(tv), data->my_index);
 	return (0);
 }
 
@@ -116,7 +116,6 @@ void	*check_end(void *v_datas)
 	struct timeval	tv;
 	t_data			*datas;
 
-	printf("監視用スレッド起動\n");
 	datas = (t_data *)v_datas;
 	while (*datas->is_end == 0)
 	{
@@ -128,8 +127,8 @@ void	*check_end(void *v_datas)
 			if (tv_in_ms(datas->latest_eat_tv[i]) + datas->args->time_to_die <= tv_in_ms(tv))
 			{
 				*datas->is_end = 1;
+				usleep(1000);
 				printf("%ld %d died\n", tv_in_ms(tv), i);
-				printf("監視用スレッド終了\n");
 				return (NULL);
 			}
 		}
@@ -142,10 +141,10 @@ void	*check_end(void *v_datas)
 		if (i > datas->args->nb_of_philos)
 		{
 			*datas->is_end = 1;
+			usleep(1000);
 			printf("all philos ate enough\n");
 		}
 	}
-	printf("監視用スレッド終了\n");
 	return (NULL);
 }
 
@@ -319,7 +318,7 @@ int	main(int argc, char *argv[])
 	t_args	args;
 
 	struct timeval tv_start; // todo あとで消す
-	// struct timeval tv_end;   // todo あとで消す
+
 	if (argc < 5 || argc > 6)
 		return (1);
 	set_args(argc, argv, &args);
@@ -327,8 +326,7 @@ int	main(int argc, char *argv[])
 		return (1);
 	if (gettimeofday(&tv_start, NULL) != 0)
 		return (free_all_before_end(datas, FAIL));
-	printf("start = %ld\n", tv_in_ms(tv_start)); // todo delete
-	set_default_latest_eat_tv(datas, &tv_start); // 仮
+	set_default_latest_eat_tv(datas, &tv_start);
 
 	// todo group 2 切り出す
 	if (pthread_create(datas->th, NULL, check_end, datas) != 0)
@@ -338,10 +336,7 @@ int	main(int argc, char *argv[])
 	{
 		datas[i].my_index = i;
 		if (pthread_create(datas[i].th, NULL, start_routine, &datas[i]) != 0)
-		{
-			perror("pthread_create error: "); // todo delete
 			return (free_all_before_end(datas, FAIL));
-		}
 	}
 
 	// todo group 3 切り出す
@@ -350,18 +345,12 @@ int	main(int argc, char *argv[])
 	{
 		if (pthread_join(*(datas[i].th), datas[i].rtn_status) != 0)
 			return (free_all_before_end(datas, FAIL));
-		printf("th[%d] return : %lu\n", i, (uintptr_t)((void **)datas->rtn_status)[i]);
+		// printf("th[%d] return : %lu\n", i, (uintptr_t)((void **)datas->rtn_status)[i]);
 		if (&(datas->rtn_status)[i] != NULL)
 		{
 			if (&datas->rtn_status[i] == (void *)1)
 				return (free_all_before_end(datas, FAIL));
 		}
 	}
-	// printf("  end routine\n");
-	// if (gettimeofday(&tv_end, NULL) != 0)
-		// return (1);
-	// printf("time = %ld.%d\n", tv_end.tv_sec, tv_end.tv_usec);
-	// printf("time   end = %ld\n", tv_in_ms(tv_end));
-	// printf("time  diff = %ld\n", tv_in_ms(tv_end) - tv_in_ms(tv_start));
 	return (free_all_before_end(datas, NORMAL));
 }
