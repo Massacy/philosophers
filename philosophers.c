@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/18 15:36:00 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/18 23:33:27 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,10 +32,12 @@ int	check_rtn_end(t_data *data, pthread_mutex_t *fork_r,
 
 int	routine_loop(t_data *data, pthread_mutex_t *fork_r, pthread_mutex_t *fork_l)
 {
-	if (data->my_index % 2 == 1)
-		usleep(200);
+	// think (take fork)
+	// if (data->my_index % 2 == 1)
+		// usleep(200);
+	// 奇数、偶数で右利き左利き
 	pthread_mutex_lock(fork_r);
-	if (check_rtn_end(data, fork_r, NULL) == NORMAL)
+	if (check_rtn_end(data, fork_r, NULL) == NORMAL) // この辺りのチェック方法も変わってくる。終了時unlockは必要
 		return (NORMAL);
 	if (msg_take_fork(data))
 		return (FAIL);
@@ -44,12 +46,14 @@ int	routine_loop(t_data *data, pthread_mutex_t *fork_r, pthread_mutex_t *fork_l)
 		return (NORMAL);
 	if (msg_take_fork(data))
 		return (FAIL);
+	// eat 
 	if (msg_eating(data))
 		return (FAIL);
 	if (check_rtn_end(data, fork_r, fork_l) == NORMAL)
 		return (NORMAL);
 	pthread_mutex_unlock(fork_r);
 	pthread_mutex_unlock(fork_l);
+	// sleep
 	if (msg_sleeping(data))
 		return (FAIL);
 	if (*data->is_end == 1)
@@ -65,7 +69,8 @@ void	*start_routine(void *v_data)
 	t_data			*data;
 	int				rtn;
 
-	data = (t_data *)v_data;
+	data = (t_data *)v_data;	
+	// 奇数、偶数で右利き左利きにする。
 	fork_r = &data->mutex[data->my_index - 1];
 	fork_l = &data->mutex[data->my_index % data->args->nb_of_philos];
 	while (*data->is_end == 0)

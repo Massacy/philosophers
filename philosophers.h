@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers.h                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/18 15:34:58 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/18 23:31:42 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@ typedef struct s_data
 	pthread_t		*th;
 	void			*rtn_status;
 	pthread_mutex_t	*mutex;
+	pthread_mutex_t	*fork_first;
+	pthread_mutex_t	*fork_second;
 
 	int				*is_end;
 	int				nb_eat;
