@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/17 02:59:32 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/18 15:34:58 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,23 @@ typedef struct s_data
 
 int					ft_atoi(char *nptr);
 
-void *check_end(void *v_datas);
+// initializer.c
+void				set_args(int argc, char *argv[], t_args *args);
+int					init_datas(t_data **datas, t_args *args);
+
+// supervisor.c
+void				*check_end(void *v_datas);
+
+// utils.c
+long				tv_in_ms(struct timeval tv);
+void				free_datas(t_data *data);
+int					free_all_before_end(t_data *datas, int is_fail);
+
+// messages.c
+int					msg_take_fork(t_data *data);
+int					msg_eating(t_data *data);
+int					msg_sleeping(t_data *data);
+int					msg_thinking(t_data *data);
 
 #endif
 

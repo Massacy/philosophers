@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 02:58:13 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/17 03:22:07 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/18 15:37:12 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,8 @@ static int	check_ate_enough(t_data *datas)
 
 void	*check_end(void *v_datas)
 {
-	int i;
-	struct timeval tv;
-	t_data *datas;
-	int rtn;
+	t_data			*datas;
+	int				rtn;
 
 	datas = (t_data *)v_datas;
 	while (*datas->is_end == 0)
