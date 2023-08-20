@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers.h                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/18 23:31:42 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/20 23:50:36 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,31 +40,67 @@ typedef struct s_data
 
 	pthread_t		*th;
 	void			*rtn_status;
-	pthread_mutex_t	*mutex;
+	struct timeval	*latest_eat_tv;
+
+	pthread_mutex_t	*eat_tv_mutex;
 	pthread_mutex_t	*fork_first;
 	pthread_mutex_t	*fork_second;
 
+	pthread_mutex_t	*is_end_mutex;
 	int				*is_end;
-	int				nb_eat;
+	pthread_mutex_t	*eat_nb_mutex;
+	int				eat_nb;
 	int				my_index;
 
-	struct timeval	*latest_eat_tv;
+	// pthread_mutex_t *
+	// pthread_mutex_t *
+}					t_philo;
 
-}					t_data;
+typedef struct s_supervisor
+{
+	t_philo			*philo_head;
+
+	pthread_t		th;
+	void			*rtn_status;
+	int				is_end;
+	pthread_mutex_t	is_end_mutex;
+
+	pthread_mutex_t *fork_mutex;   //free
+	pthread_mutex_t *eat_tv_mutex; //free
+	pthread_mutex_t *eat_nb_mutex; //free
+
+}					t_sv;
+
+// typedef struct s_all_head
+// {
+// 	t_args			*args;
+
+// 	pthread_t		*th;
+// 	void			*rtn_status;
+
+// 	pthread_mutex_t	*fork_head;
+// 	int				*is_end;
+
+// 	pthread_mutex_t *eat_tv_head_head;
+// 	struct timeval *latest_eat_tv_head;
+// } t_all_head;
 
 int					ft_atoi(char *nptr);
 
 // initializer.c
-void				set_args(int argc, char *argv[], t_args *args);
-int					init_datas(t_data **datas, t_args *args);
+int	init_datas(t_sv *sv, t_args *args); //updated
+
+// initializer2.c
+void				set_args(int argc, char *argv[], t_args *args); //ok
+int					init_mutexes(t_sv *sv, int n); // new
 
 // supervisor.c
 void				*check_end(void *v_datas);
 
 // utils.c
 long				tv_in_ms(struct timeval tv);
-void				free_datas(t_data *data);
-int					free_all_before_end(t_data *datas, int is_fail);
+void	free_datas(t_sv *sv); // updated
+int					free_all_before_end(t_sv *sv, int is_fail); //updated
 
 // messages.c
 int					msg_take_fork(t_data *data);

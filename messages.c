@@ -3,81 +3,90 @@
 /*                                                        :::      ::::::::   */
 /*   messages.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:06:28 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/18 23:35:29 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/20 23:46:22 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
 
-int	msg_take_fork(t_data *data)
-{
-	struct timeval	tv;
+// int	msg_take_fork(t_data *data)
+// {
+// 	struct timeval	tv;
 
-	if (gettimeofday(&tv, NULL) != 0)
-		return (1);
-	if (*data->is_end != 0)
-		return (0);
-	//TODO supervisor がこのタイミングで書き換えることを保証していない。is_endもmutexで管理
-	printf("%ld %d has taken a fork\n", tv_in_ms(tv), data->my_index);
-	return (0);
-}
+// 	if (gettimeofday(&tv, NULL) != 0)
+// 		return (1);
+// 	if (*data->is_end != 0)
+// 		return (0);
+// 	//TODO supervisor がこのタイミングで書き換えることを保証していない。is_endもmutexで管理
+// 	printf("%ld %d has taken a fork\n", tv_in_ms(tv), data->my_index);
+// 	return (0);
+// }
 
-int	msg_eating(t_data *data)
-{
-	struct timeval	tv;
+// int	msg_eating(t_data *data)
+// {
+// 	struct timeval	tv;
 
-	if (gettimeofday(&tv, NULL) != 0)
-		return (1);
-	*data->latest_eat_tv = tv;
-	if (*data->is_end != 0)
-		return (0);
-	printf("%ld %d is eating\n", tv_in_ms(tv), data->my_index);
-	while (*data->is_end == 0 && tv_in_ms(*data->latest_eat_tv)
-		+ data->args->time_to_eat > tv_in_ms(tv))
-	{
-		if (gettimeofday(&tv, NULL) != 0)
-			return (1);
-	}
-	data->nb_eat++;
-	return (0);
-}
+// 	if (gettimeofday(&tv, NULL) != 0)
+// 		return (1);
 
-int	msg_sleeping(t_data *data)
-{
-	struct timeval	tv_start;
-	struct timeval	tv;
+// 	*data->latest_eat_tv = tv;
+	
+// 	if (*data->is_end != 0)
+// 		return (0);
+// 	printf("%ld %d is eating\n", tv_in_ms(tv), data->my_index);
+// 	while (*data->is_end == 0 && tv_in_ms(*data->latest_eat_tv)
+// 		+ data->args->time_to_eat > tv_in_ms(tv))
+// 	{
+// 		if (gettimeofday(&tv, NULL) != 0)
+// 			return (1);
+// 	}
+// 	data->nb_eat++;
+// 	return (0);
+// }
 
-	if (gettimeofday(&tv_start, NULL) != 0)
-		return (1);
+// int	msg_sleeping(t_data *data)
+// {
+// 	struct timeval	tv_start;
+// 	struct timeval	tv;
+
+// 	if (gettimeofday(&tv_start, NULL) != 0)
+// 		return (1);
 
 
-	{ // end mutex        order die // TODO
-		if (*data->is_end != 0)
-			return (0);
-		printf("%ld %d is sleeping\n", tv_in_ms(tv_start), data->my_index);	
-	}
+// 	{ // end mutex        order die // TODO
 
-	tv = tv_start;
-	while (*data->is_end == 0 && tv_in_ms(tv_start)
-		+ data->args->time_to_sleep > tv_in_ms(tv))
-	{
-		if (gettimeofday(&tv, NULL) != 0)
-			return (1);
-	}
-	return (0);
-}
+// 		if (*data->is_end != 0)
+// 			return (0);
+// 		printf("%ld %d is sleeping\n", tv_in_ms(tv_start), data->my_index);	
+// 	}
 
-int	msg_thinking(t_data *data)
-{
-	struct timeval	tv;
+// 	tv = tv_start;
+// 	while (*data->is_end == 0 && tv_in_ms(tv_start)
+// 		+ data->args->time_to_sleep > tv_in_ms(tv))
+// 	{
+// 		// lock
+// 		if(*data->is_end == 0)
 
-	if (gettimeofday(&tv, NULL) != 0)
-		return (1);
-	if (*data->is_end != 0)
-		return (0);
-	printf("%ld %d is thinking\n", tv_in_ms(tv), data->my_index);
-	return (0);
-}
+// 		//unlock
+
+
+// 		if (gettimeofday(&tv, NULL) != 0)
+// 			return (1);
+// 	}
+// 	return (0);
+// }
+
+// int	msg_thinking(t_data *data)
+// {
+// 	struct timeval	tv;
+
+// 	if (gettimeofday(&tv, NULL) != 0)
+// 		return (1);
+// 	if (*data->is_end != 0)
+// 		return (0);
+// 	printf("%ld %d is thinking\n", tv_in_ms(tv), data->my_index);
+// 	return (0);
+// }
