@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:01:29 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/20 22:55:24 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/22 17:56:59 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,14 @@ static int	default_allocation(t_sv *sv, t_philo *philos)
 	philos->th = malloc(sizeof(pthread_t) * (n + 1));
 	philos->rtn_status = malloc(sizeof(void *) * (n + 1));
 	philos->latest_eat_tv = malloc(sizeof(struct timeval) * (n + 1));
-	sv->fork_mutex = malloc(sizeof(pthread_mutex_t) * (n + 1));
-	sv->eat_tv_mutex = malloc(sizeof(pthread_mutex_t) * (n + 1));
-	sv->eat_nb_mutex = malloc(sizeof(pthread_mutex_t) * (n + 1));
-	if (philos->th == NULL || philos->rtn_status == NULL \
-		|| sv->fork_mutex == NULL || sv->eat_tv_mutex == NULL \
-		|| philos->latest_eat_tv == NULL || sv->eat_nb_mutex == NULL)
+	sv->all_mutex_head = malloc(sizeof(pthread_mutex_t) * 4 * (n + 1) + 2);
+	// sv->fork_mutex = malloc(sizeof(pthread_mutex_t) * (n + 1));
+	// sv->eat_tv_mutex = malloc(sizeof(pthread_mutex_t) * (n + 1));
+	// sv->eat_nb_mutex = malloc(sizeof(pthread_mutex_t) * (n + 1));
+	if (philos->th == NULL || philos->rtn_status == NULL || philos->latest_eat_tv == NULL \
+		|| sv->all_mutex_head == NULL)
+		// || sv->fork_mutex == NULL || sv->eat_tv_mutex == NULL \
+		// || philos->latest_eat_tv == NULL || sv->eat_nb_mutex == NULL)
 	{
 		free_datas(sv);
 		return (1);
@@ -47,12 +49,13 @@ static void	set_adrs_philo(t_sv *sv, t_philo *philos, t_args *args)
 		philos[i].latest_eat_tv = &philos->latest_eat_tv[i];
 		philos[i].eat_nb_mutex = &philos->eat_nb_mutex[i];
 		philos[i].eat_tv_mutex = &philos->eat_tv_mutex[i];
+		philos[i].print_mutex = &philos->print_mutex;
 		philos[i].is_end = &sv->is_end;
 		if (i % 2 == 1)
 		{
 			philos[i].fork_first = &sv->fork_mutex[i - 1];
 			philos[i].fork_second = &sv->fork_mutex[i % args->nb_of_philos];
-			// if (i == 1 && args->nb_of_philos == 1)
+			// if (i == 1 && args->nb_of_philos == 1) // なかったら同じフォークを取ろうとしてdead lockになる？
 				// philos[i].fork_second = NULL;
 		}
 		else
@@ -64,23 +67,28 @@ static void	set_adrs_philo(t_sv *sv, t_philo *philos, t_args *args)
 }
 
 
-static void set_default_supervisor(t_sv *sv)
+static void set_default_supervisor(t_sv *sv, int n)
 {
 	sv->is_end = 0;
+	sv->is_end_mutex = &sv->all_mutex_head[0];
+	sv->print_mutex = &sv->all_mutex_head[1];
+	sv->fork_mutex = &sv->all_mutex_head[2];
+	sv->eat_tv_mutex = &sv->all_mutex_head[2 + (n + 1)];
+	sv->eat_nb_mutex = &sv->all_mutex_head[2 + (n + 1) * 2];
+	sv->eat_priority_mutex = &sv->all_mutex_head[2 + (n + 1) * 3];
 }
 
-static int set_default_philos(t_sv *sv)
+static int set_default_philos(t_sv *sv, int n)
 {
-	int n;
 	int i;
 	struct timeval	tv_start;
 
-	n = sv->philo_head->args->nb_of_philos;
 	i = 0;
 	while (++i <= n)
 	{
 		sv->philo_head[i].my_index = i;
 		sv->philo_head[i].eat_nb = 0;
+		sv->philo_head[i].eat_priority = 1;
 	}
 	if (gettimeofday(&tv_start, NULL) != 0)
 		return (free_all_before_end(sv, FAIL));
@@ -110,8 +118,8 @@ int	init_datas(t_sv *sv, t_args *args)
 		return (1);
 	}
 	set_adrs_philo(sv, philos, args);
-	set_default_supervisor(sv);
-	if(set_default_philos(sv) != 0)
+	set_default_supervisor(sv, args->nb_of_philos);
+	if(set_default_philos(sv, args->nb_of_philos) != 0)
 		return (1);
 	return (0);
 }

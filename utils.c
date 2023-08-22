@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:03:28 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/20 23:14:19 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/22 17:59:27 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,7 @@ void	free_datas(t_sv *sv)
 	free(ps->th);
 	free(ps->rtn_status);
 	free(ps->latest_eat_tv);
-	free(sv->fork_mutex);
-	free(sv->eat_tv_mutex);
-	free(sv->eat_nb_mutex);
+	free(sv->all_mutex_head);
 	free(ps);
 }
 
@@ -39,14 +37,11 @@ int	free_all_before_end(t_sv *sv, int is_fail)
 
 	n = sv->philo_head->args->nb_of_philos;
 	i = 0;
-	while (i <= n)
+	while(i <= 4 * (n + 1) + 2)
 	{
-		pthread_mutex_destroy(&sv->fork_mutex[i]);
-		pthread_mutex_destroy(&sv->eat_tv_mutex[i]);
-		pthread_mutex_destroy(&sv->eat_nb_mutex[i]);
+		pthread_mutex_destroy(&sv->all_mutex_head[i]);
 		i++;
 	}
-	pthread_mutex_destroy(&sv->is_end_mutex);
 	free_datas(sv);
 	if (is_fail)
 		return (1);

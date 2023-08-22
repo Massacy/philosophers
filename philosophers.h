@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/20 23:50:36 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/22 18:03:45 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,10 +50,12 @@ typedef struct s_data
 	int				*is_end;
 	pthread_mutex_t	*eat_nb_mutex;
 	int				eat_nb;
+	pthread_mutex_t	*print_mutex;
+	int eat_priority;
+	pthread_mutex_t *eat_priority_mutex;
+
 	int				my_index;
 
-	// pthread_mutex_t *
-	// pthread_mutex_t *
 }					t_philo;
 
 typedef struct s_supervisor
@@ -63,11 +65,16 @@ typedef struct s_supervisor
 	pthread_t		th;
 	void			*rtn_status;
 	int				is_end;
-	pthread_mutex_t	is_end_mutex;
 
-	pthread_mutex_t *fork_mutex;   //free
-	pthread_mutex_t *eat_tv_mutex; //free
-	pthread_mutex_t *eat_nb_mutex; //free
+	pthread_mutex_t	*is_end_mutex;
+	pthread_mutex_t *print_mutex;
+
+	pthread_mutex_t *fork_mutex;   //n+1 
+	pthread_mutex_t *eat_tv_mutex; //n+1
+	pthread_mutex_t *eat_nb_mutex; //n+1
+	pthread_mutex_t *eat_priority_mutex; // n+1
+
+	pthread_mutex_t *all_mutex_head; // free
 
 }					t_sv;
 
