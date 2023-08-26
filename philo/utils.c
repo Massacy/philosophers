@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:03:28 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/22 17:59:27 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/26 17:10:38 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ void	free_datas(t_sv *sv)
 
 	ps = sv->philo_head;
 	free(ps->th);
-	free(ps->rtn_status);
+	// free(ps->rtn_status);
 	free(ps->latest_eat_tv);
 	free(sv->all_mutex_head);
 	free(ps);

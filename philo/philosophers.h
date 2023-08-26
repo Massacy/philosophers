@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/22 18:03:45 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/26 20:13:58 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,14 @@ typedef struct s_args
 
 }					t_args;
 
-typedef struct s_data
+typedef struct s_philo
 {
 	t_args			*args;
 
 	pthread_t		*th;
-	void			*rtn_status;
-	struct timeval	*latest_eat_tv;
+	int				rtn_status_int;
+	int 			*rtn_status;
+	struct timeval *latest_eat_tv;
 
 	pthread_mutex_t	*eat_tv_mutex;
 	pthread_mutex_t	*fork_first;
@@ -63,7 +64,8 @@ typedef struct s_supervisor
 	t_philo			*philo_head;
 
 	pthread_t		th;
-	void			*rtn_status;
+	int				rtn_status_int;
+	int 			*rtn_status;
 	int				is_end;
 
 	pthread_mutex_t	*is_end_mutex;
@@ -77,20 +79,6 @@ typedef struct s_supervisor
 	pthread_mutex_t *all_mutex_head; // free
 
 }					t_sv;
-
-// typedef struct s_all_head
-// {
-// 	t_args			*args;
-
-// 	pthread_t		*th;
-// 	void			*rtn_status;
-
-// 	pthread_mutex_t	*fork_head;
-// 	int				*is_end;
-
-// 	pthread_mutex_t *eat_tv_head_head;
-// 	struct timeval *latest_eat_tv_head;
-// } t_all_head;
 
 int					ft_atoi(char *nptr);
 
@@ -110,10 +98,14 @@ void	free_datas(t_sv *sv); // updated
 int					free_all_before_end(t_sv *sv, int is_fail); //updated
 
 // messages.c
-int					msg_take_fork(t_data *data);
-int					msg_eating(t_data *data);
-int					msg_sleeping(t_data *data);
-int					msg_thinking(t_data *data);
+int					msg_take_fork(t_philo *ph); //updated
+int					msg_eating(t_philo *ph); //updated
+int					msg_sleeping(t_philo *ph);
+int					msg_thinking(t_philo *ph);
+
+
+// philosopher.c
+int rtn_n_and_unlock(int n, pthread_mutex_t *mu1, pthread_mutex_t *mu2);
 
 #endif
 
