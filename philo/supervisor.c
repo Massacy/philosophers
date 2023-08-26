@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 02:58:13 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/26 22:18:02 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/26 22:23:26 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,12 +90,10 @@ void	*check_end(void *v_sv)
 		if (rtn == FAIL)
 			return ((void *)1);
 		else if (rtn == NORMAL)
-			// return (NULL);
-			return ((void *)1234);
+			return (NULL);
 		rtn = check_ate_enough(sv);
 		if (rtn == NORMAL)
-			// return (NULL);
-			return ((void *)5678);
+			return (NULL);
 	}
 }
 
