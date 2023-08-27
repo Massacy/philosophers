@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   eat_process.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 19:36:56 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 20:21:08 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 21:20:36 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ int	eat_process(t_philo *ph)
 	if (rtn != CONTINUE)
 		return (rtn_n_and_unlock(rtn, ph->fork_first, NULL));
 	if (ph->fork_second == NULL)
-		return (NORMAL);
+		return (rtn_n_and_unlock(NORMAL, ph->fork_first, NULL));
 	pthread_mutex_lock(ph->fork_second);
 	rtn = msg_take_fork(ph);
 	if (rtn != CONTINUE)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   supervisor2.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 16:48:53 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 19:23:22 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 21:18:34 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 static void	check_priority_1(t_philo *ph)
 {
 	pthread_mutex_lock(ph[1].eat_priority_mutex);
-	ph[1].eat_priority = 0;
+	ph[1].eat_priority = 1;
 	pthread_mutex_unlock(ph[1].eat_priority_mutex);
 }
 
