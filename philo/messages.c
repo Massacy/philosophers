@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:06:28 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 22:44:59 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 23:11:15 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,10 @@ int	msg_sleeping(t_philo *ph)
 		if (gettimeofday(&tv, NULL) != 0)
 			return (FAIL);
 		usleep(100);
+		pthread_mutex_lock(ph->is_end_mutex);
+		if (*ph->is_end != 0)
+			return (rtn_n_and_unlock(NORMAL, ph->is_end_mutex, NULL));
+		pthread_mutex_unlock(ph->is_end_mutex);
 	}
 	return (CONTINUE);
 }
