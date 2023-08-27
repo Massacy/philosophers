@@ -6,106 +6,47 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/26 20:13:58 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 18:56:48 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PHILOSOPHERS_H
 # define PHILOSOPHERS_H
 
-# include <limits.h>
-# include <pthread.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <sys/time.h>
-# include <unistd.h>
+# include "philo_struct.h"
 
 # define NORMAL 0
 # define FAIL 1
 # define CONTINUE -1
+# define LOOP 2
 
-typedef struct s_args
-{
-	int				nb_of_philos;
-	int				time_to_die;
-	int				time_to_eat;
-	int				time_to_sleep;
-	int				nb_of_times_each_philo_must_eat;
-
-}					t_args;
-
-typedef struct s_philo
-{
-	t_args			*args;
-
-	pthread_t		*th;
-	int				rtn_status_int;
-	int 			*rtn_status;
-	struct timeval *latest_eat_tv;
-
-	pthread_mutex_t	*eat_tv_mutex;
-	pthread_mutex_t	*fork_first;
-	pthread_mutex_t	*fork_second;
-
-	pthread_mutex_t	*is_end_mutex;
-	int				*is_end;
-	pthread_mutex_t	*eat_nb_mutex;
-	int				eat_nb;
-	pthread_mutex_t	*print_mutex;
-	int eat_priority;
-	pthread_mutex_t *eat_priority_mutex;
-
-	int				my_index;
-
-}					t_philo;
-
-typedef struct s_supervisor
-{
-	t_philo			*philo_head;
-
-	pthread_t		th;
-	int				rtn_status_int;
-	int 			*rtn_status;
-	int				is_end;
-
-	pthread_mutex_t	*is_end_mutex;
-	pthread_mutex_t *print_mutex;
-
-	pthread_mutex_t *fork_mutex;   //n+1 
-	pthread_mutex_t *eat_tv_mutex; //n+1
-	pthread_mutex_t *eat_nb_mutex; //n+1
-	pthread_mutex_t *eat_priority_mutex; // n+1
-
-	pthread_mutex_t *all_mutex_head; // free
-
-}					t_sv;
-
-int					ft_atoi(char *nptr);
+int		ft_atoi(char *nptr);
 
 // initializer.c
-int	init_datas(t_sv *sv, t_args *args); //updated
+int		init_datas(t_sv *sv, t_args *args);
 
 // initializer2.c
-void				set_args(int argc, char *argv[], t_args *args); //ok
-int					init_mutexes(t_sv *sv, int n); // new
+void	set_args(int argc, char *argv[], t_args *args);
+int		init_mutexes(t_sv *sv, int n);
 
 // supervisor.c
-void				*check_end(void *v_datas);
+void	*check_end(void *v_datas);
+
+// supervisor2.c
+void	check_set_priority(t_sv *sv);
 
 // utils.c
-long				tv_in_ms(struct timeval tv);
-void	free_datas(t_sv *sv); // updated
-int					free_all_before_end(t_sv *sv, int is_fail); //updated
-
+long	tv_in_ms(struct timeval tv);
+void	free_datas(t_sv *sv);
+int		free_all_before_end(t_sv *sv, int is_fail);
+int		rtn_n_and_unlock(int n, pthread_mutex_t *mu1, pthread_mutex_t *mu2);
 // messages.c
-int					msg_take_fork(t_philo *ph); //updated
-int					msg_eating(t_philo *ph); //updated
-int					msg_sleeping(t_philo *ph);
-int					msg_thinking(t_philo *ph);
-
+int		msg_take_fork(t_philo *ph);
+int		msg_eating(t_philo *ph);
+int		msg_sleeping(t_philo *ph);
+int		msg_thinking(t_philo *ph);
 
 // philosopher.c
-int rtn_n_and_unlock(int n, pthread_mutex_t *mu1, pthread_mutex_t *mu2);
 
 #endif
 

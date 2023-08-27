@@ -3,7 +3,7 @@ CC := cc
 CFLAGS := -Wall -Wextra -Werror
 # CFLAGS := -Wall -Wextra -Werror -fsanitize=thread -g
 # CFLAGS := -Wall -Wextra -Werror -fsanitize=address -g
-SRCS := philosophers.c ft_atoi.c initializer.c initializer2.c utils.c supervisor.c messages.c
+SRCS := philosophers.c ft_atoi.c initializer.c initializer2.c utils.c supervisor.c supervisor2.c messages.c
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 
 all: $(NAME)

@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:06:28 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/26 19:37:50 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 18:27:20 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ int increment_eat_nb(t_philo *ph)
 	pthread_mutex_lock(ph->eat_nb_mutex);
 	ph->eat_nb++;
 	pthread_mutex_unlock(ph->eat_nb_mutex);
-	return (NORMAL);
+	return (CONTINUE);
 }
 
 int	msg_eating(t_philo *ph)
@@ -49,10 +49,7 @@ int	msg_eating(t_philo *ph)
 	pthread_mutex_lock(ph->print_mutex);
 	pthread_mutex_lock(ph->is_end_mutex);
 	if (*ph->is_end != 0)
-	{
-		//自分が死んでるかチェック->自身のlatest_eat_tvを読む。mutexがいらなくなる。is_endを1にする。
 		return (rtn_n_and_unlock(NORMAL, ph->is_end_mutex, ph->print_mutex));
-	}
 	printf("%ld %d is eating\n", tv_in_ms(tv), ph->my_index);
 	rtn_n_and_unlock(CONTINUE, ph->is_end_mutex, ph->print_mutex);
 	while (1)
@@ -64,6 +61,7 @@ int	msg_eating(t_philo *ph)
 		if (gettimeofday(&tv, NULL) != 0)
 			return (FAIL);	
 	}
+	return (CONTINUE);
 }
 
 int	msg_sleeping(t_philo *ph)

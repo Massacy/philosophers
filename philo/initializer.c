@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:01:29 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/26 20:59:50 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/26 23:08:30 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ static void	set_adrs_philo(t_sv *sv, t_philo *philos, t_args *args)
 		philos[i].latest_eat_tv = &philos->latest_eat_tv[i];
 		philos[i].eat_nb_mutex = &sv->eat_nb_mutex[i]; //&philos->eat_nb_mutex[i];
 		philos[i].eat_tv_mutex = &sv->eat_tv_mutex[i]; //&philos->eat_tv_mutex[i];
+		philos[i].eat_priority_mutex = &sv->eat_priority_mutex[i];
 		philos[i].is_end_mutex = sv->is_end_mutex;	   // philos->is_end_mutex;
 		philos[i].print_mutex = sv->print_mutex;	   // philos->print_mutex;
 		philos[i].is_end = &sv->is_end;
