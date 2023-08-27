@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   eat_process.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 19:36:56 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 22:11:35 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 22:44:50 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 int	msg_take_fork(t_philo *ph)
 {
 	struct timeval	tv;
-
 
 	pthread_mutex_lock(ph->print_mutex);
 	pthread_mutex_lock(ph->is_end_mutex);
@@ -61,7 +60,6 @@ int	msg_eating(t_philo *ph)
 			return (rtn_n_and_unlock(CONTINUE, ph->eat_tv_mutex, NULL));
 		pthread_mutex_unlock(ph->eat_tv_mutex);
 		usleep(100);
-		
 	}
 }
 
