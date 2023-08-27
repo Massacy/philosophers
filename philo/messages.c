@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   messages.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:06:28 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 22:09:02 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 22:44:59 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ int	msg_sleeping(t_philo *ph)
 {
 	struct timeval	tv_start;
 	struct timeval	tv;
-
 
 	pthread_mutex_lock(ph->print_mutex);
 	pthread_mutex_lock(ph->is_end_mutex);
@@ -39,7 +38,6 @@ int	msg_sleeping(t_philo *ph)
 int	msg_thinking(t_philo *ph)
 {
 	struct timeval	tv;
-
 
 	pthread_mutex_lock(ph->print_mutex);
 	pthread_mutex_lock(ph->is_end_mutex);
