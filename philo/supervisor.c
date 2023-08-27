@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   supervisor.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 02:58:13 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 19:22:56 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 21:53:59 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,9 @@ static int	check_died(t_sv *sv)
 	i = 0;
 	while (++i <= ph->args->nb_of_philos)
 	{
+		pthread_mutex_lock(ph[i].eat_tv_mutex);
 		if (gettimeofday(&tv, NULL) != 0)
 			return (FAIL);
-		pthread_mutex_lock(ph[i].eat_tv_mutex);
 		if (tv_in_ms(*(ph[i].latest_eat_tv))
 			+ ph->args->time_to_die <= tv_in_ms(tv))
 			return (process_died(sv, &tv, i));

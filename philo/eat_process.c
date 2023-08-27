@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 19:36:56 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 21:20:36 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 22:11:35 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,13 @@ int	msg_take_fork(t_philo *ph)
 {
 	struct timeval	tv;
 
-	if (gettimeofday(&tv, NULL) != 0)
-		return (FAIL);
+
 	pthread_mutex_lock(ph->print_mutex);
 	pthread_mutex_lock(ph->is_end_mutex);
 	if (*ph->is_end != 0)
 		return (rtn_n_and_unlock(NORMAL, ph->is_end_mutex, ph->print_mutex));
+	if (gettimeofday(&tv, NULL) != 0)
+		return (FAIL);
 	printf("%ld %d has taken a fork\n", tv_in_ms(tv), ph->my_index);
 	rtn_n_and_unlock(CONTINUE, ph->is_end_mutex, ph->print_mutex);
 	return (CONTINUE);
@@ -38,27 +39,29 @@ int	msg_eating(t_philo *ph)
 {
 	struct timeval	tv;
 
+	pthread_mutex_lock(ph->print_mutex);
+	pthread_mutex_lock(ph->is_end_mutex);
+	if (*ph->is_end != 0)
+		return (rtn_n_and_unlock(NORMAL, ph->is_end_mutex, ph->print_mutex));
 	if (gettimeofday(&tv, NULL) != 0)
 		return (FAIL);
 	pthread_mutex_lock(ph->eat_tv_mutex);
 	*ph->latest_eat_tv = tv;
 	pthread_mutex_unlock(ph->eat_tv_mutex);
-	pthread_mutex_lock(ph->print_mutex);
-	pthread_mutex_lock(ph->is_end_mutex);
-	if (*ph->is_end != 0)
-		return (rtn_n_and_unlock(NORMAL, ph->is_end_mutex, ph->print_mutex));
 	printf("%ld %d is eating\n", tv_in_ms(tv), ph->my_index);
 	increment_eat_nb(ph);
 	rtn_n_and_unlock(CONTINUE, ph->is_end_mutex, ph->print_mutex);
 	while (1)
 	{
 		pthread_mutex_lock(ph->eat_tv_mutex);
+		if (gettimeofday(&tv, NULL) != 0)
+			return (FAIL);
 		if (tv_in_ms(*ph->latest_eat_tv)
 			+ ph->args->time_to_eat <= tv_in_ms(tv))
 			return (rtn_n_and_unlock(CONTINUE, ph->eat_tv_mutex, NULL));
 		pthread_mutex_unlock(ph->eat_tv_mutex);
-		if (gettimeofday(&tv, NULL) != 0)
-			return (FAIL);
+		usleep(100);
+		
 	}
 }
 
