@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 19:36:56 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 19:40:19 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 20:21:08 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,13 +27,11 @@ int	msg_take_fork(t_philo *ph)
 	return (CONTINUE);
 }
 
-static int	increment_eat_nb(t_philo *ph)
+static void	increment_eat_nb(t_philo *ph)
 {
-	pthread_mutex_unlock(ph->eat_tv_mutex);
 	pthread_mutex_lock(ph->eat_nb_mutex);
 	ph->eat_nb++;
 	pthread_mutex_unlock(ph->eat_nb_mutex);
-	return (CONTINUE);
 }
 
 int	msg_eating(t_philo *ph)
@@ -50,18 +48,18 @@ int	msg_eating(t_philo *ph)
 	if (*ph->is_end != 0)
 		return (rtn_n_and_unlock(NORMAL, ph->is_end_mutex, ph->print_mutex));
 	printf("%ld %d is eating\n", tv_in_ms(tv), ph->my_index);
+	increment_eat_nb(ph);
 	rtn_n_and_unlock(CONTINUE, ph->is_end_mutex, ph->print_mutex);
 	while (1)
 	{
 		pthread_mutex_lock(ph->eat_tv_mutex);
 		if (tv_in_ms(*ph->latest_eat_tv)
 			+ ph->args->time_to_eat <= tv_in_ms(tv))
-			return (increment_eat_nb(ph));
+			return (rtn_n_and_unlock(CONTINUE, ph->eat_tv_mutex, NULL));
 		pthread_mutex_unlock(ph->eat_tv_mutex);
 		if (gettimeofday(&tv, NULL) != 0)
 			return (FAIL);
 	}
-	return (CONTINUE);
 }
 
 static int	can_eat_or_end(t_philo *ph)

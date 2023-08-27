@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 19:42:08 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 20:28:04 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,10 @@ int	main(int argc, char *argv[])
 	if (argc < 5 || argc > 6)
 		return (1);
 	set_args(argc, argv, &args);
+	if (args.nb_of_philos < 1 || args.time_to_die < 1 \
+	|| args.time_to_eat < 1 || args.time_to_sleep < 1 \
+	|| args.nb_of_times_each_philo_must_eat < 1)
+		return (0);
 	if (init_datas(&supervisor, &args) != 0)
 		return (1);
 	return (run_threads(&supervisor));
