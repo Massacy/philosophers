@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 16:48:53 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 18:45:03 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 19:23:22 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,6 @@ static void	check_priority_3(t_philo *ph, int n)
 		pthread_mutex_lock(ph[i].eat_tv_mutex);
 		pthread_mutex_lock(ph[n_r].eat_tv_mutex);
 		pthread_mutex_lock(ph[i].eat_priority_mutex);
-		// printf("%d %d %d : [%ld %ld %ld]\n", n_r, i, n_l, tv_in_ms(*ph[n_r].latest_eat_tv), tv_in_ms(*ph[i].latest_eat_tv), tv_in_ms(*ph[n_l].latest_eat_tv));
-
 		if (tv_in_ms(*ph[i].latest_eat_tv) <= tv_in_ms(*ph[n_r].latest_eat_tv) \
 		&& tv_in_ms(*ph[i].latest_eat_tv) <= tv_in_ms(*ph[n_l].latest_eat_tv))
 			ph[i].eat_priority = 1;
@@ -67,7 +65,6 @@ static void	check_priority_3(t_philo *ph, int n)
 		pthread_mutex_unlock(ph[n_l].eat_tv_mutex);
 		pthread_mutex_unlock(ph[i].eat_tv_mutex);
 		pthread_mutex_unlock(ph[n_r].eat_tv_mutex);
-		// printf("%d %d %d : [%d %d %d]\n", n_r, i, n_l, ph[n_r].eat_priority, ph[i].eat_priority, ph[n_l].eat_priority);
 	}
 }
 

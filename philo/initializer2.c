@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/20 22:49:46 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/26 17:39:37 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 19:19:49 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,25 +28,16 @@ void	set_args(int argc, char *argv[], t_args *args)
 		args->nb_of_times_each_philo_must_eat = INT_MAX;
 }
 
-// th[i] は i 番目の哲学者のスレッド
-
-// mutex[i-1] は i 番目の哲学者の右のフォーク
-// mutex[i] は i 番目の哲学者の左のフォーク
-// latest_eat_tv[i] は i 番目の哲学者が最後に食事をしはじめた時間
-// is_end は 0 なら生存中、1 なら死亡or全員規定の数の食事後
-// nb_eat[i] は i 番目の哲学者が食事した回数
-
-
-int init_mutexes(t_sv *sv, int n)
+int	init_mutexes(t_sv *sv, int n)
 {
-	int i;
+	int	i;
 
 	i = 0;
-	while (i <= 4*(n+1)+2)
+	while (i <= 4 * (n + 1) + 2)
 	{
 		if (pthread_mutex_init(&sv->all_mutex_head[i], NULL) != 0)
 		{
-			while (i>=0)
+			while (i >= 0)
 			{
 				pthread_mutex_destroy(&sv->all_mutex_head[i]);
 				i--;
@@ -54,6 +45,23 @@ int init_mutexes(t_sv *sv, int n)
 			return (1);
 		}
 		i++;
+	}
+	return (0);
+}
+
+int	default_allocation(t_sv *sv, t_philo *philos)
+{
+	int	n;
+
+	n = philos->args->nb_of_philos;
+	philos->th = malloc(sizeof(pthread_t) * (n + 1));
+	philos->latest_eat_tv = malloc(sizeof(struct timeval) * (n + 1));
+	sv->all_mutex_head = malloc(sizeof(pthread_mutex_t) * 4 * (n + 1) + 2);
+	if (philos->th == NULL || philos->latest_eat_tv == NULL \
+	|| sv->all_mutex_head == NULL)
+	{
+		free_datas(sv);
+		return (1);
 	}
 	return (0);
 }

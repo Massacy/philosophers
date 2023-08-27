@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 02:58:13 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 18:28:27 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 19:22:56 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ static int	process_died(t_sv *sv, struct timeval *tv, int i)
 	pthread_mutex_lock(sv->is_end_mutex);
 	sv->is_end = 1;
 	pthread_mutex_unlock(sv->is_end_mutex);
-	// usleep(1000);
 	pthread_mutex_lock(sv->print_mutex);
 	printf("%ld %d died\n", tv_in_ms(*tv), i);
 	pthread_mutex_unlock(sv->print_mutex);
@@ -76,7 +75,6 @@ void	*check_end(void *v_sv)
 {
 	t_sv	*sv;
 	int		rtn;
-	struct timeval	tv;
 
 	sv = (t_sv *)v_sv;
 	while (1)
@@ -89,7 +87,6 @@ void	*check_end(void *v_sv)
 		rtn = check_ate_enough(sv);
 		if (rtn == NORMAL)
 			return (NULL);
-		gettimeofday(&tv, NULL);
 		check_set_priority(sv);
 	}
 }

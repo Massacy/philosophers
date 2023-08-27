@@ -6,51 +6,13 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:57:19 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 18:59:01 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 19:42:08 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
 
-int	can_eat_or_end(t_philo *ph)
-{
-	pthread_mutex_lock(ph->eat_priority_mutex);
-	if (ph->eat_priority == 1)
-		return (CONTINUE);
-	pthread_mutex_unlock(ph->eat_priority_mutex);
-	pthread_mutex_lock(ph->is_end_mutex);
-	if (*ph->is_end != 0)
-		return (rtn_n_and_unlock(NORMAL, ph->is_end_mutex, NULL));
-	pthread_mutex_unlock(ph->is_end_mutex);
-	return (LOOP);
-}
-
-int	eat_process(t_philo *ph)
-{
-	int	rtn;
-
-	while (can_eat_or_end(ph) == LOOP)
-		;
-	pthread_mutex_unlock(ph->eat_priority_mutex);
-	pthread_mutex_lock(ph->fork_first);
-	rtn = msg_take_fork(ph);
-	if (rtn != CONTINUE)
-		return (rtn_n_and_unlock(rtn, ph->fork_first, NULL));
-	if (ph->fork_second == NULL)
-		return (NORMAL);
-	pthread_mutex_lock(ph->fork_second);
-	rtn = msg_take_fork(ph);
-	if (rtn != CONTINUE)
-		return (rtn_n_and_unlock(rtn, ph->fork_first, ph->fork_second));
-	rtn = msg_eating(ph);
-	if (rtn != CONTINUE)
-		return (rtn_n_and_unlock(rtn, ph->fork_first, ph->fork_second));
-	pthread_mutex_unlock(ph->fork_first);
-	pthread_mutex_unlock(ph->fork_second);
-	return (CONTINUE);
-}
-
-int	philo_routine(t_philo *ph)
+static int	philo_routine(t_philo *ph)
 {
 	int	rtn;
 
@@ -82,19 +44,6 @@ void	*start_routine(void *v_philo)
 	}
 }
 
-static int	is_rtn_status_1(void *rtn_status)
-{
-	if (rtn_status != NULL)
-	{
-		// printf("rtn val : %lu\n", (uintptr_t)(void **)rtn_status);
-		// if (rtn_status == (void *)1)
-		// printf("rtn_status address %p\n", rtn_status);
-		// printf("rnt_status NULLじゃないとき : %d\n", *(int *)rtn_status);
-		return (1);
-	}
-	return (0);
-}
-
 static int	join_part(t_sv *sv)
 {
 	int	i;
@@ -103,18 +52,18 @@ static int	join_part(t_sv *sv)
 	status = NORMAL;
 	if (pthread_join(sv->th, (void **)&sv->rtn_status) != 0)
 		status = FAIL;
-	if (is_rtn_status_1(sv->rtn_status) != 0)
+	if (sv->rtn_status != NULL)
 		status = FAIL;
 	i = 0;
 	while (++i <= sv->philo_head->args->nb_of_philos)
 	{
 		if (pthread_join(*(sv->philo_head[i].th),
-							(void **)&sv->philo_head[i].rtn_status) != 0)
+				(void **)&sv->philo_head[i].rtn_status) != 0)
 		{
 			status = FAIL;
 			continue ;
 		}
-		if (is_rtn_status_1(sv->philo_head[i].rtn_status) != 0)
+		if (sv->philo_head[i].rtn_status != NULL)
 			status = FAIL;
 	}
 	return (status);
