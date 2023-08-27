@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 16:48:53 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 22:29:04 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/27 22:40:13 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ static void	check_priority_2(t_philo *ph)
 		else
 			ph[i].eat_priority = 0;
 		pthread_mutex_unlock(ph[i].eat_priority_mutex);
-		pthread_mutex_unlock(ph[n_l].eat_tv_mutex);
 		pthread_mutex_unlock(ph[i].eat_tv_mutex);
+		pthread_mutex_unlock(ph[n_l].eat_tv_mutex);
 	}
 }
 
