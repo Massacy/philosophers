@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:03:28 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 17:53:25 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/29 04:29:02 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,11 @@
 long	tv_in_ms(struct timeval tv)
 {
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
+}
+
+long	tv_in_us(struct timeval tv)
+{
+	return (tv.tv_sec * 1000000 + tv.tv_usec);
 }
 
 void	free_datas(t_sv *sv)

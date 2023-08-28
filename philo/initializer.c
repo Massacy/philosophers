@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/17 03:01:29 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 20:22:46 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/29 04:19:23 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ static int	set_default_vals_philo(t_sv *sv, int n)
 	}
 	if (gettimeofday(&tv_start, NULL) != 0)
 		return (free_all_before_end(sv, FAIL));
-	tv_start.tv_usec -= 1000;
 	i = 0;
 	while (++i <= n)
 		*(sv->philo_head[i].latest_eat_tv) = tv_start;

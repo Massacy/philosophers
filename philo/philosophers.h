@@ -6,7 +6,7 @@
 /*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/30 03:56:02 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 19:41:22 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/29 04:28:49 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ void	check_set_priority(t_sv *sv);
 
 // utils.c
 long	tv_in_ms(struct timeval tv);
+long	tv_in_us(struct timeval tv);
 void	free_datas(t_sv *sv);
 int		free_all_before_end(t_sv *sv, int is_fail);
 int		rtn_n_and_unlock(int n, pthread_mutex_t *mu1, pthread_mutex_t *mu2);
