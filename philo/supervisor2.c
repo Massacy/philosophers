@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   supervisor2.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: imasayos <imasayos@student.42.fr>          +#+  +:+       +#+        */
+/*   By: imasayos <imasayos@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/27 16:48:53 by imasayos          #+#    #+#             */
-/*   Updated: 2023/08/27 22:40:13 by imasayos         ###   ########.fr       */
+/*   Updated: 2023/08/29 04:29:44 by imasayos         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,8 @@ static void	check_priority_3(t_philo *ph, int n)
 		pthread_mutex_lock(ph[i].eat_tv_mutex);
 		pthread_mutex_lock(ph[n_r].eat_tv_mutex);
 		pthread_mutex_lock(ph[i].eat_priority_mutex);
-		if (tv_in_ms(*ph[i].latest_eat_tv) <= tv_in_ms(*ph[n_r].latest_eat_tv) \
-		&& tv_in_ms(*ph[i].latest_eat_tv) <= tv_in_ms(*ph[n_l].latest_eat_tv))
+		if (tv_in_us(*ph[i].latest_eat_tv) <= tv_in_us(*ph[n_r].latest_eat_tv) \
+		&& tv_in_us(*ph[i].latest_eat_tv) <= tv_in_us(*ph[n_l].latest_eat_tv))
 			ph[i].eat_priority = 1;
 		else
 			ph[i].eat_priority = 0;
